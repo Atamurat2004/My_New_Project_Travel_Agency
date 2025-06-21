@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Тест стилей - Турагентство</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mb-4">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="#"><h1>Турагентство Онлайн</h1></a>
+            <div>
+                <button class="btn btn-outline-primary me-2">Вход</button>
+                <button class="btn btn-primary">Регистрация</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card tour-card mb-4">
+                    <img src="assets/images/moscow1.jpg" class="tour-card-img" alt="Москва">
+                    <div class="card-body">
+                        <h5 class="card-title">Москва златоглавая</h5>
+                        <div class="mb-2">
+                            <span class="badge bg-info">Экскурсионные</span>
+                        </div>
+                        <div class="mb-2 text-muted">Россия, Москва</div>
+                        <div class="mb-2"><b>Даты:</b> 2025-06-21 — 2025-07-21</div>
+                        <div class="mb-2 price"><b>Цена:</b> 42,000 ₽</div>
+                        <div class="mb-2 star-rating">★★★★☆ <span class="text-secondary">(4/5)</span></div>
+                        <button class="btn btn-primary w-100">Забронировать</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card tour-card mb-4 best-offer">
+                    <img src="assets/images/sochi1.jpg" class="tour-card-img" alt="Сочи">
+                    <div class="card-body">
+                        <h5 class="card-title">Курорты Сочи</h5>
+                        <div class="mb-2">
+                            <span class="badge bg-success">Пляжные</span>
+                        </div>
+                        <div class="mb-2 text-muted">Россия, Сочи</div>
+                        <div class="mb-2"><b>Даты:</b> 2025-06-21 — 2025-06-28</div>
+                        <div class="mb-2 price"><b>Цена:</b> 55,000 ₽</div>
+                        <div class="mb-2 star-rating">★★★★★ <span class="text-secondary">(5/5)</span></div>
+                        <button class="btn btn-success w-100">Забронировать</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Демонстрация стилей</h5>
+                        <div class="mb-3">
+                            <button class="btn btn-primary me-2">Основная кнопка</button>
+                            <button class="btn btn-success me-2">Успех</button>
+                            <button class="btn btn-danger me-2">Опасность</button>
+                            <button class="btn btn-outline-primary">Контур</button>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <span class="badge bg-info me-2">Информация</span>
+                            <span class="badge bg-success me-2">Успех</span>
+                            <span class="badge bg-warning me-2">Предупреждение</span>
+                            <span class="badge bg-danger">Опасность</span>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="alert alert-success">Это уведомление об успехе!</div>
+                            <div class="alert alert-info">Это информационное уведомление!</div>
+                            <div class="alert alert-warning">Это предупреждение!</div>
+                            <div class="alert alert-danger">Это уведомление об ошибке!</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <form>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Email</label>
+                                        <input type="email" class="form-control" placeholder="Введите email">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Категория</label>
+                                        <select class="form-select">
+                                            <option>Выберите категорию</option>
+                                            <option>Экскурсионные</option>
+                                            <option>Пляжные</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 

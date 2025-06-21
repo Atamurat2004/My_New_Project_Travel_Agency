@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Турагентство Онлайн</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        body { background: #f8fafc; }
+        .tour-card img { object-fit: cover; height: 180px; }
+        .category-badge { margin-right: 4px; }
+        .best-offer { border: 2px solid #ffc107; background: #fffbe6; }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mb-4">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="#"><h1>Турагентство Онлайн</h1></a>
+        <div>
+            <!-- Кнопки для неавторизованных пользователей -->
+            <button class="btn btn-outline-primary me-2" id="loginBtn">Вход</button>
+            <button class="btn btn-primary" id="registerBtn">Регистрация</button>
+            <!-- Кнопки для авторизованных пользователей -->
+            <button class="btn btn-outline-primary me-2" id="accountBtn" style="display: none;">Аккаунт</button>
+            <button class="btn btn-danger" id="logoutBtn" style="display: none;">Выйти</button>
+        </div>
+    </div>
+</nav>
+<div class="container mt-5">
+    <!-- Панель фильтров (только для авторизованных пользователей) -->
+    <div id="filter-panel" style="display: none;">
+        <div class="row mb-4">
+            <div class="col-md-4 mb-2">
+                <input type="text" id="filterNameMain" class="form-control" placeholder="Поиск по названию...">
+            </div>
+            <div class="col-md-3 mb-2">
+                <select id="filterCategory" class="form-select">
+                    <option value="">Все категории</option>
+                    <option value="Экскурсионные">Экскурсионные</option>
+                    <option value="Пляжные">Пляжные</option>
+                    <option value="Горные">Горные</option>
+                    <option value="Экологические">Экологические</option>
+                </select>
+            </div>
+            <div class="col-md-2 mb-2">
+                <input type="text" id="filterDateStart" class="form-control" placeholder="Дата от">
+            </div>
+            <div class="col-md-2 mb-2">
+                <input type="text" id="filterDateEnd" class="form-control" placeholder="Дата до">
+            </div>
+            <div class="col-md-1 mb-2">
+                <button id="resetFiltersBtn" class="btn btn-success w-100">Сброс</button>
+            </div>
+        </div>
+    </div>
+    <!-- Лучшие предложения -->
+    <div id="best-offers" class="mb-5"></div>
+    <!-- Список туров -->
+    <div id="tours-list" class="row g-4"></div>
+    <!-- Для динамического контента -->
+    <div id="main-section"></div>
+</div>
+
+<!-- Модальное окно личного кабинета -->
+<div class="modal fade" id="accountModal" tabindex="-1" aria-labelledby="accountModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="accountModalLabel">Личный кабинет</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="accountModalBody">
+        <!-- Контент будет загружен сюда через JS -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Модальное окно входа -->
+<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="loginModalLabel">Вход</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="loginForm">
+          <div class="mb-3">
+            <label for="loginEmail" class="form-label">Email</label>
+            <input type="email" class="form-control" id="loginEmail" autocomplete="email" required>
+          </div>
+          <div class="mb-3">
+            <label for="loginPassword" class="form-label">Пароль</label>
+            <input type="password" class="form-control" id="loginPassword" autocomplete="current-password" required>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Войти</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Модальное окно регистрации -->
+<div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="registerModalLabel">Регистрация</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="registerForm">
+          <div class="mb-3">
+            <label for="registerName" class="form-label">Имя</label>
+            <input type="text" class="form-control" id="registerName" autocomplete="name" required>
+          </div>
+          <div class="mb-3">
+            <label for="registerEmail" class="form-label">Email</label>
+            <input type="email" class="form-control" id="registerEmail" autocomplete="email" required>
+          </div>
+          <div class="mb-3">
+            <label for="registerPassword" class="form-label">Пароль</label>
+            <input type="password" class="form-control" id="registerPassword" autocomplete="new-password" required>
+          </div>
+          <button type="submit" class="btn btn-success w-100">Зарегистрироваться</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Модальное окно редактирования отзыва -->
+<div class="modal fade" id="editReviewModal" tabindex="-1" aria-labelledby="editReviewModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editReviewModalLabel">Редактировать отзыв</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="editReviewForm">
+          <input type="hidden" id="editReviewId">
+          <div class="mb-3">
+            <label for="editReviewRating" class="form-label">Оценка</label>
+            <select class="form-select" id="editReviewRating" required>
+                <option value="5">5 ★</option>
+                <option value="4">4 ★</option>
+                <option value="3">3 ★</option>
+                <option value="2">2 ★</option>
+                <option value="1">1 ★</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="editReviewComment" class="form-label">Комментарий</label>
+            <textarea class="form-control" id="editReviewComment" rows="3" required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Сохранить</button>
+        </form>
+        <div id="editReviewMsg" class="mt-2"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Модальное окно детального просмотра обращения в поддержке -->
+<div class="modal fade" id="supportDetailModal" tabindex="-1" aria-labelledby="supportDetailModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="supportDetailModalLabel">Детали обращения</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="supportDetailContent">
+          <!-- Контент будет загружен динамически -->
+        </div>
+        <div class="mt-3">
+          <h6>Ответы поддержки:</h6>
+          <div id="supportMessages" class="border rounded p-3" style="max-height: 300px; overflow-y: auto;">
+            <!-- Сообщения будут загружены динамически -->
+          </div>
+          <div class="mt-3">
+            <textarea class="form-control" id="supportReplyMessage" rows="3" placeholder="Ваш ответ (если нужно добавить информацию)"></textarea>
+            <button class="btn btn-primary mt-2" onclick="sendSupportReply()">Отправить ответ</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Модальное окно для ответа админа на обращение -->
+<div class="modal fade" id="adminSupportTicketModal" tabindex="-1" aria-labelledby="adminSupportTicketModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="adminSupportTicketModalLabel">Обращение #</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="adminSupportTicketDetails"></div>
+        <hr>
+        <h6>История переписки</h6>
+        <div id="adminSupportMessages" class="mb-3" style="max-height: 300px; overflow-y: auto;"></div>
+        <hr>
+        <h6>Ответить пользователю</h6>
+        <form id="adminReplyForm">
+            <input type="hidden" id="adminReplyTicketId">
+            <div class="mb-3">
+                <textarea class="form-control" id="adminReplyMessage" rows="4" placeholder="Введите ваш ответ..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Отправить ответ</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Flatpickr, Bootstrap, JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="assets/js/app.js?v=2.2"></script>
+<script>
+    // Инициализация flatpickr
+    flatpickr("#filterDateStart", {dateFormat: "Y-m-d", allowInput: true, placeholder: "Дата от"});
+    flatpickr("#filterDateEnd", {dateFormat: "Y-m-d", allowInput: true, placeholder: "Дата до"});
+
+    // Инициализация обработчиков событий после загрузки DOM
+    document.addEventListener('DOMContentLoaded', function() {
+        // Кнопки модальных окон
+        const loginBtn = document.getElementById('loginBtn');
+        const registerBtn = document.getElementById('registerBtn');
+        const accountBtn = document.getElementById('accountBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+
+        // Модальные окна
+        const loginModal = document.getElementById('loginModal');
+        const registerModal = document.getElementById('registerModal');
+
+        // Исправляем проблему с aria-hidden
+        if (loginModal) {
+            loginModal.addEventListener('hidden.bs.modal', function () {
+                document.body.classList.remove('modal-open');
+                loginModal.removeAttribute('aria-hidden');
+            });
+        }
+        if (registerModal) {
+            registerModal.addEventListener('hidden.bs.modal', function () {
+                document.body.classList.remove('modal-open');
+                registerModal.removeAttribute('aria-hidden');
+            });
+        }
+
+        if (loginBtn) {
+            loginBtn.onclick = function() {
+                var loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+                loginModal.show();
+            };
+        }
+
+        if (registerBtn) {
+            registerBtn.onclick = function() {
+                var registerModal = new bootstrap.Modal(document.getElementById('registerModal'));
+                registerModal.show();
+            };
+        }
+
+        if (accountBtn) {
+            accountBtn.onclick = function() {
+                showAccountPanel();
+            };
+        }
+
+        if (logoutBtn) {
+            logoutBtn.onclick = function() {
+                logout();
+            };
+        }
+
+        // Проверяем авторизацию
+        if (token && userRole) {
+            showAccountButtons();
+            if (userRole === 'ROLE_ADMIN') {
+                showAdminPanel();
+            } else {
+                showMainInterface();
+            }
+        } else {
+            showAuthButtons();
+            fetchTours();
+        }
+    });
+
+    // Функция для показа панели аккаунта
+    function showAccountPanel() {
+        const accountModalBody = document.getElementById('accountModalBody');
+        accountModalBody.innerHTML = `
+            <div class="row">
+                <div class="col-md-3 border-end mb-3 mb-md-0">
+                    <ul class="nav flex-column nav-pills" id="accountMenu">
+                        <li class="nav-item mb-2"><a class="nav-link active" id="profileTab" href="#">👤 Профиль</a></li>
+                        <li class="nav-item mb-2"><a class="nav-link" id="ordersTab" href="#">📋 Мои заказы</a></li>
+                        <li class="nav-item mb-2"><a class="nav-link" id="reviewsTab" href="#">⭐ Мои отзывы</a></li>
+                        <li class="nav-item mb-2"><a class="nav-link" id="paymentsTab" href="#">💳 Платежи</a></li>
+                        <li class="nav-item mb-2"><a class="nav-link" id="notificationsTab" href="#">🔔 Уведомления</a></li>
+                        <li class="nav-item mb-2"><a class="nav-link" id="supportTab" href="#">🎧 Поддержка</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-9" id="accountContent">
+                    <!-- Контент раздела -->
+                </div>
+            </div>
+        `;
+        // Обработчики меню
+        document.getElementById('profileTab').onclick = function(e) { e.preventDefault(); setActiveTab(this); renderProfileSection(); };
+        document.getElementById('ordersTab').onclick = function(e) { e.preventDefault(); setActiveTab(this); renderOrdersSection(); };
+        document.getElementById('reviewsTab').onclick = function(e) { e.preventDefault(); setActiveTab(this); renderReviewsSection(); };
+        document.getElementById('paymentsTab').onclick = function(e) { e.preventDefault(); setActiveTab(this); renderPaymentsSection(); };
+        document.getElementById('notificationsTab').onclick = function(e) { e.preventDefault(); setActiveTab(this); renderNotificationsSection(); };
+        document.getElementById('supportTab').onclick = function(e) { e.preventDefault(); setActiveTab(this); renderSupportSection(); };
+        // По умолчанию показываем профиль
+        renderProfileSection();
+
+        // Показываем модальное окно
+        const accountModal = new bootstrap.Modal(document.getElementById('accountModal'));
+        accountModal.show();
+    }
+    // Функция для выделения активного таба
+    function setActiveTab(tab) {
+        document.querySelectorAll('#accountMenu .nav-link').forEach(el => el.classList.remove('active'));
+        tab.classList.add('active');
+    }
+    // Заглушки для разделов
+    function renderProfileSection() {
+        const content = document.getElementById('accountContent');
+        content.innerHTML = `
+            <h5>👤 Личные данные / Мой профиль</h5>
+            <form id="profileForm">
+                <div class="mb-3">
+                    <label class="form-label">ФИО</label>
+                    <input type="text" class="form-control" id="profileName" name="name" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-control" id="profileEmail" name="email" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Телефон</label>
+                    <input type="text" class="form-control" id="profilePhone" name="phone">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Дата рождения</label>
+                    <input type="date" class="form-control" id="profileBirthDate" name="birthDate">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Уведомления</label>
+                    <select class="form-select" id="profileNotifications" name="notifications">
+                        <option value="none">Не получать</option>
+                        <option value="email">Email</option>
+                        <option value="sms">SMS</option>
+                        <option value="all">Email и SMS</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Новый пароль</label>
+                    <input type="password" class="form-control" id="profilePassword" name="password" autocomplete="new-password" placeholder="Оставьте пустым, если не меняете">
+                </div>
+                <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+            </form>
+            <div id="profileMsg" class="mt-3"></div>
+        `;
+        // Загрузка данных пользователя
+        fetch('http://localhost:8080/api/users/me', {
+            headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+        })
+        .then(res => res.json())
+        .then(user => {
+            document.getElementById('profileName').value = user.name || '';
+            document.getElementById('profileEmail').value = user.email || '';
+            document.getElementById('profilePhone').value = user.phone || '';
+            document.getElementById('profileBirthDate').value = user.birthDate || '';
+            document.getElementById('profileNotifications').value = user.notifications || 'none';
+        });
+        // Сохранение изменений
+        document.getElementById('profileForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const data = {
+                name: document.getElementById('profileName').value,
+                email: document.getElementById('profileEmail').value,
+                phone: document.getElementById('profilePhone').value,
+                birthDate: document.getElementById('profileBirthDate').value,
+                notifications: document.getElementById('profileNotifications').value,
+                password: document.getElementById('profilePassword').value
+            };
+            if (!data.password) delete data.password;
+            try {
+                const res = await fetch('http://localhost:8080/api/users/me', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify(data)
+                });
+                if (!res.ok) throw new Error('Ошибка сохранения профиля');
+                document.getElementById('profileMsg').innerHTML = '<div class="alert alert-success">Профиль успешно обновлен!</div>';
+                document.getElementById('profilePassword').value = '';
+            } catch (err) {
+                document.getElementById('profileMsg').innerHTML = '<div class="alert alert-danger">' + err.message + '</div>';
+            }
+        };
+    }
+    function renderOrdersSection() {
+        const content = document.getElementById('accountContent');
+        content.innerHTML = `<h5>📋 Мои заказы / Мои туры</h5><div id="ordersLoading">Загрузка...</div><div id="ordersTable"></div>`;
+        fetch('http://localhost:8080/api/bookings/my-dto', {
+            headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+        })
+        .then(res => res.json())
+        .then(bookings => {
+            if (!Array.isArray(bookings) || bookings.length === 0) {
+                document.getElementById('ordersTable').innerHTML = '<div class="alert alert-info">У вас пока нет заказов.</div>';
+                document.getElementById('ordersLoading').style.display = 'none';
+                return;
+            }
+            let html = `<div class="table-responsive"><table class="table table-striped"><thead><tr><th>Тур</th><th>Даты</th><th>Статус</th><th>Действия</th></tr></thead><tbody>`;
+            for (const booking of bookings) {
+                  const canCancel = ['NEW','CONFIRMED','Подтвержден'].includes((booking.status||'').toUpperCase());
+                  const canPay = ['NEW','CONFIRMED','Подтвержден'].includes((booking.status||'').toUpperCase());
+                  html += `<tr>
+                    <td>${booking.tour ? booking.tour.name : '—'}<br><small>${booking.tour ? booking.tour.city + ', ' + booking.tour.country : ''}</small></td>
+                    <td>${booking.tour ? booking.tour.startDate : ''} — ${booking.tour ? booking.tour.endDate : ''}</td>
+                    <td>${booking.status || '—'}</td>
+                    <td>
+                      <button class="btn btn-sm btn-success me-1" ${canPay ? '' : 'disabled'} onclick="payBooking(${booking.id})">Оплатить</button>
+                      <button class="btn btn-sm btn-outline-primary me-1" disabled>Скачать ваучер</button>
+                      <button class="btn btn-sm btn-outline-secondary me-1" disabled>Скачать договор</button>
+                      <button class="btn btn-sm btn-danger" ${canCancel ? '' : 'disabled'} onclick="cancelBooking(${booking.id})">Отменить</button>
+                    </td>
+                  </tr>`;
+            }
+            html += '</tbody></table></div>';
+            document.getElementById('ordersTable').innerHTML = html;
+            document.getElementById('ordersLoading').style.display = 'none';
+        })
+        .catch(() => {
+            document.getElementById('ordersTable').innerHTML = '<div class="alert alert-danger">Ошибка загрузки заказов</div>';
+            document.getElementById('ordersLoading').style.display = 'none';
+        });
+    }
+    function renderReviewsSection() {
+        const content = document.getElementById('accountContent');
+        content.innerHTML = `<h5>⭐ Мои отзывы</h5>
+            <div class="card mb-3">
+                <div class="card-body">
+                    <form id="addReviewForm" class="row g-2 align-items-end">
+                        <div class="col-md-4">
+                            <label class="form-label">Тур</label>
+                            <select class="form-select" id="reviewTourSelect" required><option value="">Загрузка...</option></select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Оценка</label>
+                            <select class="form-select" id="reviewRating" required>
+                                <option value="">—</option>
+                                <option value="5">5 ★</option>
+                                <option value="4">4 ★</option>
+                                <option value="3">3 ★</option>
+                                <option value="2">2 ★</option>
+                                <option value="1">1 ★</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Комментарий</label>
+                            <input type="text" class="form-control" id="reviewComment" maxlength="255" placeholder="Ваш отзыв" required>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100">Оставить отзыв</button>
+                        </div>
+                    </form>
+                    <div id="addReviewMsg" class="mt-2"></div>
+                </div>
+            </div>
+            <div id="reviewsLoading">Загрузка...</div><div id="reviewsList"></div>`;
+        // Загрузка туров для выбора (только завершённые/оплаченные)
+        fetch('http://localhost:8080/api/bookings/my-dto', {
+            headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+        })
+        .then(res => res.json())
+        .then(bookings => {
+            const select = document.getElementById('reviewTourSelect');
+            select.innerHTML = '<option value="">Выберите тур</option>';
+            for (const b of bookings) {
+                const isCompleted = ['COMPLETED', 'Выполнен'].includes((b.status || '').toUpperCase());
+                const isCancelledAfterPayment = (b.status || '').toUpperCase() === 'CANCELLED' && b.paymentDate;
+
+                if (isCompleted || isCancelledAfterPayment) {
+                    if (b.tour) {
+                        select.innerHTML += `<option value="${b.tour.id}">${b.tour.name} (${b.tour.city}, ${b.tour.country})</option>`;
+                    }
+                }
+            }
+            if (select.options.length === 1) select.innerHTML = '<option value="">Нет туров для отзыва</option>';
+        });
+        // Обработка отправки отзыва
+        document.getElementById('addReviewForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const tourId = document.getElementById('reviewTourSelect').value;
+            const rating = document.getElementById('reviewRating').value;
+            const comment = document.getElementById('reviewComment').value;
+            if (!tourId || !rating || !comment) return;
+            try {
+                // Получаем userId
+                const userRes = await fetch('http://localhost:8080/api/users/me', { headers: token ? { 'Authorization': 'Bearer ' + token } : {} });
+                const user = await userRes.json();
+                const res = await fetch('http://localhost:8080/api/reviews', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ tourId, rating, comment })
+                });
+                if (!res.ok) {
+                    if (res.status === 400) {
+                        throw new Error('Вы уже оставили отзыв на этот тур.');
+                    }
+                    throw new Error('Ошибка отправки отзыва');
+                }
+                document.getElementById('addReviewMsg').innerHTML = '<div class="alert alert-success">Спасибо за отзыв!</div>';
+                document.getElementById('addReviewForm').reset();
+                renderReviewsSection(); // Перезагрузить отзывы
+            } catch (err) {
+                document.getElementById('addReviewMsg').innerHTML = '<div class="alert alert-danger">' + err.message + '</div>';
+            }
+        };
+        // Загрузка и отображение отзывов
+        fetch('http://localhost:8080/api/reviews/my', {
+            headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+        })
+        .then(res => res.json())
+        .then(reviews => {
+            if (!Array.isArray(reviews) || reviews.length === 0) {
+                document.getElementById('reviewsList').innerHTML = '<div class="alert alert-info">У вас пока нет отзывов.</div>';
+                document.getElementById('reviewsLoading').style.display = 'none';
+                return;
+            }
+            let html = '<div class="list-group">';
+            for (const review of reviews) {
+                html += `<div class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div><strong>${review.tour ? review.tour.name : '—'}</strong> <span class="text-muted">(${review.tour ? review.tour.city + ', ' + review.tour.country : ''})</span></div>
+                        <div>${'★'.repeat(review.rating || 0)}${'☆'.repeat(5 - (review.rating || 0))}</div>
+                    </div>
+                    <div class="mt-2">${review.comment || ''}</div>
+                    <div class="mt-2 text-end">
+                        <button class="btn btn-sm btn-outline-primary" onclick="showEditReviewModal(${review.id}, ${review.rating}, '${review.comment}')">Редактировать</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteReview(${review.id})">Удалить</button>
+                    </div>
+                </div>`;
+            }
+            html += '</div>';
+            document.getElementById('reviewsList').innerHTML = html;
+            document.getElementById('reviewsLoading').style.display = 'none';
+        })
+        .catch(() => {
+            document.getElementById('reviewsList').innerHTML = '<div class="alert alert-danger">Ошибка загрузки отзывов</div>';
+            document.getElementById('reviewsLoading').style.display = 'none';
+        });
+
+        // Обработчик для формы редактирования
+        document.getElementById('editReviewForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const reviewId = document.getElementById('editReviewId').value;
+            const rating = document.getElementById('editReviewRating').value;
+            const comment = document.getElementById('editReviewComment').value;
+            try {
+                const res = await fetch(`http://localhost:8080/api/reviews/${reviewId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ rating, comment })
+                });
+                if (!res.ok) throw new Error('Ошибка обновления отзыва');
+                
+                const editReviewModal = bootstrap.Modal.getInstance(document.getElementById('editReviewModal'));
+                editReviewModal.hide();
+                renderReviewsSection();
+            } catch (err) {
+                document.getElementById('editReviewMsg').innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
+            }
+        };
+    }
+    function renderPaymentsSection() {
+        const content = document.getElementById('accountContent');
+        content.innerHTML = `<h5>💳 История платежей</h5><div id="paymentsLoading">Загрузка...</div><div id="paymentsTable"></div>`;
+        
+        fetch('http://localhost:8080/api/bookings/my-dto', {
+            headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+        })
+        .then(res => res.json())
+        .then(bookings => {
+            const transactions = [];
+            
+            bookings.forEach(b => {
+                if (b.paymentDate) {
+                    transactions.push({
+                        tourName: b.tour ? b.tour.name : '—',
+                        date: new Date(b.paymentDate).toLocaleString('ru-RU'),
+                        amount: b.tour ? b.tour.price : 0,
+                        type: 'payment'
+                    });
+                }
+                if (b.refundDate) {
+                    transactions.push({
+                        tourName: b.tour ? b.tour.name : '—',
+                        date: new Date(b.refundDate).toLocaleString('ru-RU'),
+                        amount: b.refundAmount,
+                        type: 'refund'
+                    });
+                }
+            });
+
+            transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            if (transactions.length === 0) {
+                document.getElementById('paymentsTable').innerHTML = '<div class="alert alert-info">У вас пока нет финансовых операций.</div>';
+                document.getElementById('paymentsLoading').style.display = 'none';
+                return;
+            }
+            
+            let html = `<div class="table-responsive"><table class="table table-striped">
+                <thead><tr><th>Тур</th><th>Дата операции</th><th>Сумма</th><th>Тип</th></tr></thead>
+                <tbody>`;
+            
+            for (const t of transactions) {
+                const amountClass = t.type === 'payment' ? 'text-danger' : 'text-success';
+                const amountSign = t.type === 'payment' ? '-' : '+';
+                html += `<tr>
+                    <td>${t.tourName}</td>
+                    <td>${t.date}</td>
+                    <td class="${amountClass}">${amountSign}${t.amount} ₽</td>
+                    <td>${t.type === 'payment' ? 'Оплата' : 'Возврат'}</td>
+                </tr>`;
+            }
+            
+            html += '</tbody></table></div>';
+            document.getElementById('paymentsTable').innerHTML = html;
+            document.getElementById('paymentsLoading').style.display = 'none';
+        })
+        .catch(() => {
+            document.getElementById('paymentsTable').innerHTML = '<div class="alert alert-danger">Ошибка загрузки истории платежей.</div>';
+            document.getElementById('paymentsLoading').style.display = 'none';
+        });
+    }
+    function renderNotificationsSection() {
+        const content = document.getElementById('accountContent');
+        content.innerHTML = `
+            <h5>🔔 Уведомления</h5>
+            <div id="notificationsLoading">Загрузка...</div>
+            <div class="list-group" id="notificationsList"></div>
+        `;
+
+        fetch('http://localhost:8080/api/notifications/my', {
+            headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+        })
+        .then(res => res.json())
+        .then(notifications => {
+            document.getElementById('notificationsLoading').style.display = 'none';
+            const list = document.getElementById('notificationsList');
+            if (!Array.isArray(notifications) || notifications.length === 0) {
+                list.innerHTML = '<div class="list-group-item">У вас пока нет уведомлений.</div>';
+                return;
+            }
+
+            let html = '';
+            for (const n of notifications) {
+                const date = new Date(n.date).toLocaleString('ru-RU');
+                html += `
+                    <div class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">${n.title}</h6>
+                            <small class="text-muted">${date}</small>
+                        </div>
+                        <p class="mb-1">${n.message}</p>
+                    </div>
+                `;
+            }
+            list.innerHTML = html;
+        })
+        .catch(err => {
+            document.getElementById('notificationsLoading').style.display = 'none';
+            document.getElementById('notificationsList').innerHTML = '<div class="alert alert-danger">Не удалось загрузить уведомления.</div>';
+            console.error(err);
+        });
+    }
+    function renderSupportSection() {
+        const content = document.getElementById('accountContent');
+        content.innerHTML = `
+            <h5>🎧 Поддержка</h5>
+            <div class="card mb-3">
+                <div class="card-body">
+                    <form id="supportForm" class="row g-2 align-items-end">
+                        <div class="col-md-6">
+                            <label class="form-label">Тема обращения</label>
+                            <input type="text" class="form-control" id="supportSubject" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Тур</label>
+                            <select class="form-select" id="supportBooking" required>
+                                <option value="">Загрузка...</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Сообщение</label>
+                            <textarea class="form-control" id="supportMessage" rows="5" required></textarea>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary w-100">Отправить обращение</button>
+                        </div>
+                    </form>
+                    <div id="supportMsg" class="mt-2"></div>
+                </div>
+            </div>
+            <div id="supportHistory" class="mt-4">
+                <h6>История обращений</h6>
+                <div id="supportHistoryLoading">Загрузка...</div>
+                <div class="list-group" id="supportHistoryList"></div>
+            </div>
+        `;
+
+        // Загрузка туров для выбора
+        fetch('http://localhost:8080/api/bookings/my-dto', {
+            headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+        })
+        .then(res => res.json())
+        .then(bookings => {
+            const select = document.getElementById('supportBooking');
+            select.innerHTML = '<option value="">Выберите тур из списка</option>';
+            if (bookings && bookings.length > 0) {
+                bookings.forEach(b => {
+                    if(b.tour) {
+                        select.innerHTML += `<option value="${b.id}">${b.tour.name} (${b.tour.startDate} - ${b.tour.endDate})</option>`;
+                    }
+                });
+            } else {
+                select.innerHTML = '<option value="">У вас нет забронированных туров</option>';
+                select.disabled = true;
+            }
+        });
+
+        // Обработчик для формы поддержки
+        document.getElementById('supportForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const subject = document.getElementById('supportSubject').value;
+            const bookingId = document.getElementById('supportBooking').value;
+            const message = document.getElementById('supportMessage').value;
+
+            if (!subject || !bookingId || !message) {
+                document.getElementById('supportMsg').innerHTML = '<div class="alert alert-danger">Пожалуйста, заполните все поля.</div>';
+                return;
+            }
+
+            try {
+                const res = await fetch('http://localhost:8080/api/support', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ subject, bookingId: parseInt(bookingId), message })
+                });
+                if (!res.ok) throw new Error('Ошибка отправки обращения');
+                document.getElementById('supportMsg').innerHTML = '<div class="alert alert-success">Ваше обращение отправлено!</div>';
+                document.getElementById('supportForm').reset();
+                renderSupportSection(); // Refresh history
+            } catch (err) {
+                document.getElementById('supportMsg').innerHTML = '<div class="alert alert-danger">' + err.message + '</div>';
+            }
+        };
+
+        // Загрузка истории обращений
+        fetch('http://localhost:8080/api/support/my', {
+            headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+        })
+        .then(res => res.json())
+        .then(history => {
+            document.getElementById('supportHistoryLoading').style.display = 'none';
+            const list = document.getElementById('supportHistoryList');
+            if (!Array.isArray(history) || history.length === 0) {
+                list.innerHTML = '<div class="list-group-item">У вас пока нет обращений.</div>';
+                return;
+            }
+
+            let html = '<div class="list-group">';
+            for (const h of history) {
+                const date = new Date(h.date).toLocaleString('ru-RU');
+                const tourName = h.booking && h.booking.tour ? `по туру "${h.booking.tour.name}"` : '';
+                html += `
+                    <a href="#" onclick="showSupportDetail(${h.id}); return false;" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">${h.subject} <small class="text-muted">${tourName}</small></h6>
+                            <small class="text-muted">${date}</small>
+                        </div>
+                        <p class="mb-1">${h.description}</p>
+                        <small>Статус: ${h.status}</small>
+                    </a>
+                `;
+            }
+            html += '</div>';
+            list.innerHTML = html;
+        })
+        .catch(err => {
+            document.getElementById('supportHistoryLoading').style.display = 'none';
+            document.getElementById('supportHistoryList').innerHTML = '<div class="alert alert-danger">Не удалось загрузить историю обращений.</div>';
+            console.error(err);
+        });
+    }
+
+    function cancelBooking(bookingId) {
+        if (!confirm('Вы уверены, что хотите отменить это бронирование?')) return;
+        fetch(`http://localhost:8080/api/bookings/${bookingId}/cancel`, {
+            method: 'PUT',
+            headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+        })
+        .then(res => {
+            if (!res.ok) throw new Error('Ошибка отмены бронирования');
+            return res.text();
+        })
+        .then(() => {
+            alert('Бронирование отменено!');
+            renderOrdersSection();
+        })
+        .catch(err => alert(err.message));
+    }
+
+    let editReviewModalInstance;
+    function showEditReviewModal(reviewId, rating, comment) {
+        if (!editReviewModalInstance) {
+            editReviewModalInstance = new bootstrap.Modal(document.getElementById('editReviewModal'));
+        }
+        document.getElementById('editReviewId').value = reviewId;
+        document.getElementById('editReviewRating').value = rating;
+        document.getElementById('editReviewComment').value = comment;
+        document.getElementById('editReviewMsg').innerHTML = '';
+        editReviewModalInstance.show();
+    }
+
+    async function deleteReview(reviewId) {
+        if (!confirm('Вы уверены, что хотите удалить этот отзыв?')) return;
+        try {
+            const res = await fetch(`http://localhost:8080/api/reviews/${reviewId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if (!res.ok) throw new Error('Ошибка удаления отзыва');
+            renderReviewsSection();
+        } catch (err) {
+            alert(err.message);
+        }
+    }
+
+    function payBooking(bookingId) {
+        if (!confirm('Вы уверены, что хотите оплатить это бронирование? Это действие нельзя будет отменить.')) return;
+        fetch(`http://localhost:8080/api/bookings/${bookingId}/pay`, {
+            method: 'PUT',
+            headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+        })
+        .then(res => {
+            if (!res.ok) throw new Error('Ошибка оплаты');
+            return res.text();
+        })
+        .then(() => {
+            alert('Бронирование успешно оплачено!');
+            renderOrdersSection(); // Обновляем список
+        })
+        .catch(err => alert('Ошибка: ' + err.message));
+    }
+
+    function showSupportDetail(supportId) {
+        // Загружаем детали обращения
+        fetch(`http://localhost:8080/api/support/${supportId}`, {
+            headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+        })
+        .then(res => res.json())
+        .then(support => {
+            const modal = document.getElementById('supportDetailModal');
+            modal.setAttribute('data-support-id', supportId);
+            
+            const content = document.getElementById('supportDetailContent');
+            const date = new Date(support.createdAt).toLocaleString('ru-RU');
+            const tourName = support.booking && support.booking.tour ? support.booking.tour.name : support.ticketType;
+            
+            content.innerHTML = `
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title">${support.subject}</h6>
+                        <p class="card-text">${support.description || ''}</p>
+                        <div class="d-flex justify-content-between">
+                            <small class="text-muted">Тур: ${tourName}</small>
+                            <small class="text-muted">Дата: ${date}</small>
+                        </div>
+                        <div class="mt-2">
+                            <span class="badge bg-${support.status === 'OPEN' ? 'warning' : 'success'}">${support.status}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Загружаем сообщения
+            loadSupportMessages(supportId);
+            
+            // Показываем модальное окно
+            const supportDetailModal = new bootstrap.Modal(modal);
+            supportDetailModal.show();
+        })
+        .catch(err => {
+            alert('Ошибка загрузки деталей обращения: ' + err.message);
+        });
+    }
+
+    function loadSupportMessages(supportId) {
+        fetch(`http://localhost:8080/api/support/${supportId}/messages`, {
+            headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+        })
+        .then(res => res.json())
+        .then(messages => {
+            const messagesContainer = document.getElementById('supportMessages');
+            if (!Array.isArray(messages) || messages.length === 0) {
+                messagesContainer.innerHTML = '<p class="text-muted">Пока нет ответов от поддержки.</p>';
+                return;
+            }
+            
+            let html = '';
+            for (const msg of messages) {
+                const date = new Date(msg.sentAt).toLocaleString('ru-RU');
+                const isUserMessage = msg.messageType === 'USER';
+                const senderName = isUserMessage ? 'Вы' : (msg.sender ? msg.sender.name : 'Система');
+                
+                html += `
+                    <div class="mb-2 p-2 ${isUserMessage ? 'bg-light' : 'bg-primary text-white'} rounded">
+                        <div class="d-flex justify-content-between">
+                            <small><strong>${senderName}</strong></small>
+                            <small>${date}</small>
+                        </div>
+                        <p class="mb-0">${msg.message}</p>
+                    </div>
+                `;
+            }
+            messagesContainer.innerHTML = html;
+        })
+        .catch(err => {
+            document.getElementById('supportMessages').innerHTML = '<p class="text-danger">Ошибка загрузки сообщений.</p>';
+        });
+    }
+
+    // New function for sending support replies
+    async function sendSupportReply() {
+        const message = document.getElementById('supportReplyMessage').value;
+        const supportId = document.getElementById('supportDetailModal').getAttribute('data-support-id');
+
+        if (!message.trim()) {
+            alert('Пожалуйста, введите сообщение для ответа.');
+            return;
+        }
+
+        try {
+            const res = await fetch(`http://localhost:8080/api/support/${supportId}/reply`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify({ message })
+            });
+            if (!res.ok) throw new Error('Ошибка отправки ответа');
+            document.getElementById('supportReplyMessage').value = ''; // Clear reply textarea
+            loadSupportMessages(supportId); // Refresh chat
+        } catch (err) {
+            alert('Ошибка: ' + err.message);
+        }
+    }
+</script>
+</body>
+</html> 
